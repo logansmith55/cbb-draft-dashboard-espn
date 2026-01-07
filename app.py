@@ -85,7 +85,12 @@ def load_draft_picks():
     return pd.DataFrame(draft, columns=["team_name", "espn_id", "person"])
 
 
-# --- Fetch full season schedule for a team ---
+def safe_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
 def fetch_team_schedule(team_id):
     url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/{team_id}/schedule"
     r = requests.get(url)
@@ -107,11 +112,10 @@ def fetch_team_schedule(team_id):
             "game_date": pd.to_datetime(game_date),
             "home_team": home_team,
             "away_team": away_team,
-            "home_points": int(home_score) if home_score is not None else None,
-            "away_points": int(away_score) if away_score is not None else None
+            "home_points": safe_int(home_score),
+            "away_points": safe_int(away_score)
         })
     return pd.DataFrame(games)
-
 
 # --- Fetch all games for draft teams ---
 @st.cache_data(ttl=3600)
